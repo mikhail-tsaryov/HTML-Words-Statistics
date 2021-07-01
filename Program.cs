@@ -10,6 +10,8 @@ namespace HTML_Stat
     {
         static void Main(string[] args)
         {
+            Parser parser = new Parser();
+
             string urlAddress = "https://www.simbirsoft.com/";
             //Console.Write("Enter URL: ");
             //string urlAddress = Console.ReadLine();
@@ -36,11 +38,11 @@ namespace HTML_Stat
                     SaveHtml(saveHtml_filePath, readStream);
 
                     receiveStream.Position = 0;
-
-                    string parseData_filePath = @"unique_words.txt";
-                    ParseHtml(parseData_filePath, readStream);
                     response.Close();
                     readStream.Close();
+
+                    string parseData_filePath = @"unique_words.txt";
+                    parser.ParseHtml(parseData_filePath, readStream);
 
                     ReadFileAndCountWords(parseData_filePath);
                 }
@@ -53,7 +55,7 @@ namespace HTML_Stat
 
         private static Stream CopyAndClose(Stream inputStream)
         {
-            const int readSize = 256;
+            const int readSize = 1024;
             byte[] buffer = new byte[readSize];
             MemoryStream ms = new MemoryStream();
 
@@ -83,103 +85,7 @@ namespace HTML_Stat
             {
                 Console.WriteLine(e.Message);
             }            
-        }
-
-            private static void ParseHtml(string filePath, StreamReader readStream)
-        {
-            try
-            {
-                using StreamWriter sw = new StreamWriter(filePath, false, Encoding.Default);
-                string line;
-                bool nameTag_f = false;
-                bool textBlock_f = false;
-                bool tag_f = false;
-                bool noTags_f = false;
-                bool separatorsPrint_f = true;
-                string tagBuffer = "";
-                string prevTag = "";
-
-                while ((line = readStream.ReadLine()) != null)
-                {
-                    foreach (char c in line)
-                    {
-                        if (nameTag_f)
-                        {
-                            if (c != ' ' & c != '>') tagBuffer += c;
-                        }
-
-                        if (c == '<')
-                        {
-                            tag_f = true;
-                            nameTag_f = true;
-                            textBlock_f = false;
-                            tagBuffer = "";
-                            prevTag = "";
-                        }
-                        else if ((c == '>' | c == ' ') & tag_f)
-                        {
-                            if (c == '>') tag_f = false;
-                            nameTag_f = false;
-                            prevTag = tagBuffer;
-
-                            if (prevTag == "script" | prevTag == "style")
-                            {
-                                noTags_f = true;
-                                continue;
-                            }
-                            else if (prevTag == "/script" | prevTag == "/style")
-                            {
-                                noTags_f = false;
-                                continue;
-                            }
-
-                            if (c == '>' & !noTags_f)
-                            {
-                                textBlock_f = true;
-                                continue;
-                            }
-                        }
-
-                        if (textBlock_f)
-                        {
-                            if (c == '\r' |
-                                c == '\n' |
-                                c == '\t' |
-                                c == ' ' |
-                                c == ',' |
-                                c == '.' |
-                                c == '!' |
-                                c == '?' |
-                                c == '&' |
-                                c == '"' |
-                                c == ';' |
-                                c == ':' |
-                                c == '[' |
-                                c == ']' |
-                                c == '(' |
-                                c == ')')
-                            {
-                                if (!separatorsPrint_f)
-                                {
-                                    sw.WriteLine();
-                                }
-
-                                separatorsPrint_f = true;
-                            }
-                            else
-                            {
-                                sw.Write(c);
-                                separatorsPrint_f = false;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
+        }        
 
         private static void ReadFileAndCountWords(string path)
         {
