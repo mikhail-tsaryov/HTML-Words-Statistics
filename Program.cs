@@ -20,7 +20,8 @@ namespace HTML_Stat
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Stream receiveStream = response.GetResponseStream();
+                    Stream receiveStream = CopyAndClose(response.GetResponseStream());
+                    
                     StreamReader readStream;
                     if (response.CharacterSet == null)
                     {
@@ -31,9 +32,11 @@ namespace HTML_Stat
                         readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
                     }
 
-                    //string saveHtml_filePath = @"page.html";
-                    //SaveHtml(saveHtml_filePath, readStream);
-                    
+                    string saveHtml_filePath = @"page.html";
+                    SaveHtml(saveHtml_filePath, readStream);
+
+                    receiveStream.Position = 0;
+
                     string parseData_filePath = @"unique_words.txt";
                     ParseHtml(parseData_filePath, readStream);
                     response.Close();
@@ -46,6 +49,23 @@ namespace HTML_Stat
             {
                 Console.WriteLine(e.Message);
             }
+        }
+
+        private static Stream CopyAndClose(Stream inputStream)
+        {
+            const int readSize = 256;
+            byte[] buffer = new byte[readSize];
+            MemoryStream ms = new MemoryStream();
+
+            int count = inputStream.Read(buffer, 0, readSize);
+            while (count > 0)
+            {
+                ms.Write(buffer, 0, count);
+                count = inputStream.Read(buffer, 0, readSize);
+            }
+            ms.Position = 0;
+            inputStream.Close();
+            return ms;
         }
 
         private static void SaveHtml(string filePath, StreamReader readStream)
