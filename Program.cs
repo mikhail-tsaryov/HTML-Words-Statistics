@@ -10,9 +10,9 @@ namespace HTML_Stat
     {
         static void Main(string[] args)
         {
-            Console.Write("Enter URL: ");
-            //string urlAddress = "https://www.simbirsoft.com/";
-            string urlAddress = Console.ReadLine();
+            string urlAddress = "https://www.simbirsoft.com/";
+            //Console.Write("Enter URL: ");
+            //string urlAddress = Console.ReadLine();
 
             try
             {
@@ -31,7 +31,10 @@ namespace HTML_Stat
                         readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
                     }
 
-                    string parseData_filePath = @"C:\test\unique_words.txt";
+                    //string saveHtml_filePath = @"page.html";
+                    //SaveHtml(saveHtml_filePath, readStream);
+                    
+                    string parseData_filePath = @"unique_words.txt";
                     ParseHtml(parseData_filePath, readStream);
                     response.Close();
                     readStream.Close();
@@ -45,7 +48,24 @@ namespace HTML_Stat
             }
         }
 
-        private static void ParseHtml(string filePath, StreamReader readStream)
+        private static void SaveHtml(string filePath, StreamReader readStream)
+        {
+            try
+            {
+                using StreamWriter sw = new StreamWriter(filePath, false, Encoding.Default);
+                string htmlLine = "";
+                while ((htmlLine = readStream.ReadLine()) != null)
+                {
+                    sw.WriteLine(htmlLine);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }            
+        }
+
+            private static void ParseHtml(string filePath, StreamReader readStream)
         {
             try
             {
@@ -122,7 +142,6 @@ namespace HTML_Stat
                                 if (!separatorsPrint_f)
                                 {
                                     sw.WriteLine();
-                                    //Console.WriteLine();
                                 }
 
                                 separatorsPrint_f = true;
@@ -130,7 +149,6 @@ namespace HTML_Stat
                             else
                             {
                                 sw.Write(c);
-                                //Console.Write(c);
                                 separatorsPrint_f = false;
                             }
                         }
