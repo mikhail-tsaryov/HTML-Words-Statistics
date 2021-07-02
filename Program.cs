@@ -44,6 +44,7 @@ namespace HTML_Stat
                     StreamWriter sWriter = new StreamWriter(mStream);
                     sWriter.AutoFlush = true;
                     SaveHtml(saveHtml_filePath, readStream);
+
                     receiveStream.Position = 0;
                     parser.ParseHtml(sWriter, readStream);
                     readStream.Close();
