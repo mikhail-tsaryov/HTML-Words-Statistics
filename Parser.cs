@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace HTML_Stat
 {
     class Parser
     {
-        public void ParseHtml(string filePath, StreamReader readStream)
+        private readonly HashSet<char> separators = new HashSet<char>(new char[] { '\r', '\n', '\t', ' ', ',', '.', '!', '?', '&', '"', ';', ':', '[', ']', '(', ')' });
+
+        public void ParseHtml(StreamWriter sw, StreamReader readStream)
         {
             try
             {
-                using StreamWriter sw = new StreamWriter(filePath, false, Encoding.Default);
                 string line;
                 bool nameTag_f = false;
                 bool textBlock_f = false;
@@ -63,22 +64,7 @@ namespace HTML_Stat
 
                         if (textBlock_f)
                         {
-                            if (c == '\r' |
-                                c == '\n' |
-                                c == '\t' |
-                                c == ' ' |
-                                c == ',' |
-                                c == '.' |
-                                c == '!' |
-                                c == '?' |
-                                c == '&' |
-                                c == '"' |
-                                c == ';' |
-                                c == ':' |
-                                c == '[' |
-                                c == ']' |
-                                c == '(' |
-                                c == ')')
+                            if (separators.Contains(c))
                             {
                                 if (!separatorsPrint_f)
                                 {

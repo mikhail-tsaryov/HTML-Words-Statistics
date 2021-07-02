@@ -8,13 +8,15 @@ namespace HTML_Stat
 {
     class Program
     {
+        private static readonly string saveHtml_filePath = @"page.html";
+
         static void Main(string[] args)
         {
             Parser parser = new Parser();
 
-            string urlAddress = "https://www.simbirsoft.com/";
-            //Console.Write("Enter URL: ");
-            //string urlAddress = Console.ReadLine();
+            //string urlAddress = "https://www.simbirsoft.com/";
+            Console.Write("Enter URL: ");
+            string urlAddress = Console.ReadLine();
 
             try
             {
@@ -23,8 +25,9 @@ namespace HTML_Stat
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     Stream receiveStream = CopyAndClose(response.GetResponseStream());
-                    
+
                     StreamReader readStream;
+
                     if (response.CharacterSet == null)
                     {
                         readStream = new StreamReader(receiveStream);
@@ -34,17 +37,19 @@ namespace HTML_Stat
                         readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
                     }
 
-                    string saveHtml_filePath = @"page.html";
-                    SaveHtml(saveHtml_filePath, readStream);
-
-                    receiveStream.Position = 0;
                     response.Close();
+
+                    MemoryStream mStream = new MemoryStream();
+                    StreamReader sReader = new StreamReader(mStream);
+                    StreamWriter sWriter = new StreamWriter(mStream);
+                    sWriter.AutoFlush = true;
+                    SaveHtml(saveHtml_filePath, readStream);
+                    receiveStream.Position = 0;
+                    parser.ParseHtml(sWriter, readStream);
                     readStream.Close();
 
-                    string parseData_filePath = @"unique_words.txt";
-                    parser.ParseHtml(parseData_filePath, readStream);
-
-                    ReadFileAndCountWords(parseData_filePath);
+                    mStream.Position = 0;
+                    ReadAndCountWords(sReader);
                 }
             }
             catch (Exception e)
@@ -55,7 +60,7 @@ namespace HTML_Stat
 
         private static Stream CopyAndClose(Stream inputStream)
         {
-            const int readSize = 1024;
+            const int readSize = 255;
             byte[] buffer = new byte[readSize];
             MemoryStream ms = new MemoryStream();
 
@@ -87,12 +92,11 @@ namespace HTML_Stat
             }            
         }        
 
-        private static void ReadFileAndCountWords(string path)
+        private static void ReadAndCountWords(StreamReader sr)
         {
             try
             {
                 Dictionary<string, int> words = new Dictionary<string, int>();
-                using StreamReader sr = new StreamReader(path, Encoding.Default);
                 string line = "";
 
                 while ((line = sr.ReadLine()) != null)
