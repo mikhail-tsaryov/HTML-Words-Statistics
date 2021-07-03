@@ -57,6 +57,8 @@ namespace HTML_Stat
                     // Читаем слова и считаем уникальные
                     Console.WriteLine("Number of unique words per page:");
                     ReadAndCountWords(sReader);
+                    Console.WriteLine("Press any key for exit...");
+                    Console.ReadLine();
                 }
             }
             catch (Exception e)
