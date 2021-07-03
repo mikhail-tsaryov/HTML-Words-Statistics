@@ -8,12 +8,16 @@ namespace HTML_Stat
     {
         private readonly HashSet<char> separators = new HashSet<char>(new char[] { '\r', '\n', '\t', ' ', ',', '.', '!', '?', '&', '"', ';', ':', '[', ']', '(', ')' });
 
+        // Принцип выделения слов - просматриваем построчно и посимвольно дамп html-страницы,
+        // определяем появление текстовых блоков и сохраняем.
+        // При этом сразу заменяем разделители на сиволы переноса строк.
+        // На выходе получаем список слов - каждое слово в отдельной строке.
         public void ParseHtml(StreamWriter sw, StreamReader readStream)
         {
             try
             {
                 string line;
-                bool nameTag_f = false;
+                bool nameTag_f = false;     
                 bool textBlock_f = false;
                 bool tag_f = false;
                 bool noTags_f = false;
@@ -21,16 +25,18 @@ namespace HTML_Stat
                 string tagBuffer = "";
                 string prevTag = "";
 
+                // Читаем дамп по строкам и посимвольно
                 while ((line = readStream.ReadLine()) != null)
                 {
+                    // Для каждого символа определяем к чему он относится - к тегу, к имени тега или к текстовому блоку
                     foreach (char c in line)
                     {
-                        if (nameTag_f)
+                        if (nameTag_f) // Сохраняем символы в буфер если обнаружили имя тега
                         {
                             if (c != ' ' & c != '>') tagBuffer += c;
                         }
 
-                        if (c == '<')
+                        if (c == '<')   // Считаем, что это начало открывающего или закрывающего тега
                         {
                             tag_f = true;
                             nameTag_f = true;
@@ -38,13 +44,14 @@ namespace HTML_Stat
                             tagBuffer = "";
                             prevTag = "";
                         }
-                        else if ((c == '>' | c == ' ') & tag_f)
+                        else if ((c == '>' | c == ' ') & tag_f) 
                         {
-                            if (c == '>') tag_f = false;
-                            nameTag_f = false;
-                            prevTag = tagBuffer;
+                            if (c == '>') tag_f = false;    // Обнаружили конец открывающего или закрывающего тега
+                            nameTag_f = false;              // Имя тега закончилось, если встретился пробел при считывании имени тега
+                            prevTag = tagBuffer;            // Фиксируем имя тега
 
-                            if (prevTag == "script" | prevTag == "style")
+                            // Теги script и style пропускаем, там нет полезного текста
+                            if (prevTag == "script" | prevTag == "style") 
                             {
                                 noTags_f = true;
                                 continue;
@@ -55,6 +62,7 @@ namespace HTML_Stat
                                 continue;
                             }
 
+                            // Конец тега, если это не теги-исключение, то считаем, что начинается текстовый блок
                             if (c == '>' & !noTags_f)
                             {
                                 textBlock_f = true;
@@ -64,6 +72,7 @@ namespace HTML_Stat
 
                         if (textBlock_f)
                         {
+                            // Внутри текстового блока для каждого разделителя ставил перенос строки, но пропускаем подряд идущие несколько разделителей
                             if (separators.Contains(c))
                             {
                                 if (!separatorsPrint_f)

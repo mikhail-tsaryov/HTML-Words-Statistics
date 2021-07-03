@@ -8,7 +8,7 @@ namespace HTML_Stat
 {
     class Program
     {
-        private static readonly string saveHtml_filePath = @"page.html";
+        static readonly string saveHtml_filePath = @"page.html";
 
         static void Main(string[] args)
         {
@@ -20,6 +20,7 @@ namespace HTML_Stat
 
             try
             {
+                // Запрашиваем html-страницу
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -43,13 +44,18 @@ namespace HTML_Stat
                     StreamReader sReader = new StreamReader(mStream);
                     StreamWriter sWriter = new StreamWriter(mStream);
                     sWriter.AutoFlush = true;
-                    SaveHtml(saveHtml_filePath, readStream);
 
+                    // Сохраняем страницу в файл
+                    SaveHtml(saveHtml_filePath, readStream);
                     receiveStream.Position = 0;
+
+                    // Парсим страницу на слова
                     parser.ParseHtml(sWriter, readStream);
                     readStream.Close();
-
                     mStream.Position = 0;
+
+                    // Читаем слова и считаем уникальные
+                    Console.WriteLine("Number of unique words per page:");
                     ReadAndCountWords(sReader);
                 }
             }
@@ -100,6 +106,7 @@ namespace HTML_Stat
                 Dictionary<string, int> words = new Dictionary<string, int>();
                 string line = "";
 
+                // Подсчитываем уникальные слова
                 while ((line = sr.ReadLine()) != null)
                 {
                     line = line.ToLower();
@@ -107,6 +114,7 @@ namespace HTML_Stat
                     words[line] = value + 1;
                 }             
 
+                // Выводим в консоль
                 foreach (KeyValuePair<string, int> entry in words)
                 {
                     Console.WriteLine(entry.Key + " - " + entry.Value);
